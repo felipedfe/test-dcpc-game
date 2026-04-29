@@ -1,0 +1,19 @@
+body {
+    font-family: "Dosis", sans-serif;
+    background: #000;
+    margin: 0;
+    padding: 0;
+}
+canvas {
+    max-width: 1360px !important;
+    max-height: 740px !important;
+}
+#bt_fullscreen{
+	position: absolute;
+	right: 0;
+	margin: 10px;
+	padding: 5px;
+	color: #fff;
+	background: rgba(30,30,30,.5);
+	opacity: .5;
+}

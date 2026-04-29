@@ -1,0 +1,24 @@
+{
+  "short_name": "Hora do Lanche",
+  "name": "Hora do Lanche",
+  "description": "Jogo Hora do Lanche - De Criança Para Criança",
+  "icons": [
+    {
+      "src": "assets/icon192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+	{
+      "src": "assets/icon512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "./?source=pwa",
+  "background_color": "#d8fafc",
+  "display": "fullscreen",
+  "scope": "./?source=pwa",
+  "theme_color": "#d8fafc",
+  "lang": "pt-BR",
+  "orientation": "landscape"
+}
