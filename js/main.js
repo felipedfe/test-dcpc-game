@@ -136,6 +136,23 @@ let totalErros = 0;
  */
 let totalAcertos = 0;
 
+// -------------------
+const fundoPorFase = {
+	1: 'parede_1',
+	2: 'parede_2',
+	3: 'parede_3',
+};
+
+let fundoSprite; // Phaser.GameObjects.Image
+
+// guarda os gameObjects das crianças
+let containerCriancas;
+
+// variável pra guardar os acertos dentro de uma subFase (quando prato é entregue pro personagem certo)
+let acertosNaSubfase;
+
+// -------------------
+
 /**
  * Phaser.preload
  */
@@ -191,6 +208,10 @@ function preload() {
 	});
 
 	this.load.image("bg", "./assets/bg.jpg");
+	this.load.image("mesa", "./assets/mesa.png");
+	this.load.image("parede_1", "./assets/parede_1.jpg");
+	this.load.image("parede_2", "./assets/parede_2.jpg");
+	this.load.image("parede_3", "./assets/parede_3.jpg");
 	this.load.image("bg_cj", "./assets/comojogar.jpg");
 	this.load.atlas('atlas', './assets/atlas/texture.png', './assets/atlas/texture.json');
 }
@@ -260,9 +281,120 @@ function fnJogo() {
 	iniciaJogo();
 }
 
+function aplicarFundoDaFase(faseAtual) {
+  const key = fundoPorFase[faseAtual] ?? 'parede_1';
+  if (!fundoSprite) {
+    fundoSprite = $this.add.image(0, 0, key).setOrigin(0, 0);
+    fundoSprite.setDepth(-5);
+  } else {
+    fundoSprite.setTexture(key);
+  }
+}
+
+// renderiza sprites das crianças
+function criaPersonagem(id, x, y) {
+	const personagem = $this.add
+		.sprite(x, y, 'atlas', 'crianca_' + id + '_normal')
+		.setOrigin(0, 0)
+		.setInteractive()
+		.setData('id', id)
+		.setData('estado', 'normal')
+		.setData('idBalao', -1);
+
+	personagem.input.dropZone = true;
+
+	return personagem;
+}
+
+function renderizaPersonagens() {
+	containerCriancas = $this.add.container(0, 0);
+
+	let espacoEntrePersonagens = 0;
+	const totalPersonagens = 5;
+
+	for (let id = 1; id <= totalPersonagens; id += 1) {
+		const offsetX = (id === 2) ? -50 : 0; // puxa o segundo um pouco pra esquerda
+		const personagem = criaPersonagem(id, espacoEntrePersonagens + offsetX, 0);
+		containerCriancas.add(personagem);
+		espacoEntrePersonagens += 280;
+	}
+
+	console.log("---->", containerCriancas.list[0])
+	return containerCriancas;
+}
+
+const SABORES_PRATO = ['cupcake', 'morango', 'rosquinha'];
+
+function escolheSaborPratoAleatorio() {
+	return SABORES_PRATO[Math.floor(Math.random() * SABORES_PRATO.length)];
+}
+
+function criaPrato(id, x, y, sabor) {
+	const referenciaPrato = 'prato_' + id + '_' + sabor;
+	const prato = $this.add
+		.sprite(x, y, 'atlas', referenciaPrato)
+		.setOrigin(0, 0)
+		.setInteractive()
+		.setData('id', id)
+
+	prato.initialXPos = x;
+	prato.initialYPos = y;
+
+	$this.input.setDraggable(prato);
+
+	return prato;
+}
+
+function renderizaPratos() {
+	const containerPratos = $this.add.container(0, 0);
+
+	let posXDoPrato = 40;
+	const posYLinhaPar = 540;
+	const posYLinhaImpar = 420;
+	const espacoHorizontal = 250;
+	const totalPratos = 5;
+
+	for (let id = 1; id <= totalPratos; id += 1) {
+		const posYDoPrato = id % 2 === 0 ? posYLinhaPar : posYLinhaImpar;
+		const sabor = escolheSaborPratoAleatorio();
+		const prato = criaPrato(id, posXDoPrato, posYDoPrato, sabor);
+		containerPratos.add(prato);
+		posXDoPrato += espacoHorizontal;
+	}
+
+	return containerPratos;
+}
+
 function iniciaJogo() {
 	(debug && console.log('iniciaJogo'));
 	textoFase.text = 'FASE ' + fase;
+
+	// fase = 3;
+	aplicarFundoDaFase(fase);
+
+	// renderiza container com as crianças
+	let containerCriancas = renderizaPersonagens();
+	containerCriancas.setDepth(-3);
+	containerCriancas.y = 70;
+
+	let mesa = $this.add.image(0, (gameHeight / 2) - 50, "mesa");
+	mesa.setOrigin(0, 0);
+	mesa.setDepth(-3);
+
+	// let containerPratos = renderizaPratos();
+	// containerPratos.setDepth(2);
+	renderizaPratos()
+
+	$this.input.on('drag', function(_pointer, gameObject, dragX, dragY) {
+		gameObject.x = dragX;
+		gameObject.y = dragY;
+	});
+
+	// prato volta pra posição original
+	$this.input.on('dragend', function(_pointer, gameObject) {
+    gameObject.x = gameObject.initialXPos;
+    gameObject.y = gameObject.initialYPos;
+});
 
 	if (subFase === totalSubFases) {
 		//...
@@ -278,6 +410,8 @@ function iniciaJogo() {
 function novaSubFase() {
 	(debug && console.log('novaSubFase'));
 	$relogio.start();
+
+
 	//...
 }
 
