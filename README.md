@@ -6,7 +6,7 @@ This project is a technical test for [De Criança Para Criança](https://decrian
 
 ## About
 
-The game is built with [Phaser 3](https://phaser.io/) and continues from a base project that includes the loading screen, intro flow, clock mechanic, and correct/incorrect icon system.
+The game is built with [Phaser 3](https://phaser.io/) and continues from a base project that they provided.
 
 ## Stack
 
