@@ -146,7 +146,7 @@ const fundoPorFase = {
 let fundoSprite; // Phaser.GameObjects.Image
 
 // guarda os gameObjects das crianças
-let containerCriancas;
+let containerPersonagens;
 
 let containerPratos;
 
@@ -154,6 +154,11 @@ let containerPedidos;
 
 // variável pra guardar os acertos dentro de uma subFase (quando prato é entregue pro personagem certo)
 let acertosNaSubfase;
+
+// onde guardamos os pedidos de cada subFase
+let pedidosDaRodada = [];
+
+let personagensDaRodada;
 
 // -------------------
 
@@ -300,7 +305,10 @@ function renderizaPedidos() {
 	const totalPedidos = 5;
 
 	for (let id = 1; id <= totalPedidos; id += 1) {
-		const balao = $this.add.sprite(0, 0, 'atlas', 'pedido_' + id ).setVisible(false);
+		const balao = $this.add.sprite(0, 0, 'atlas', 'pedido_' + id )
+			.setOrigin(0, 0)
+			.setData('id', id)
+			.setVisible(false);
 		containerPedidos.add(balao);
 	}
 }
@@ -313,7 +321,7 @@ function criaPersonagem(id, x, y) {
 		.setInteractive()
 		.setData('id', id)
 		.setData('estado', 'normal')
-		.setData('idBalao', -1);
+		.setData('idPedido', -1);
 
 	personagem.input.dropZone = true;
 
@@ -321,7 +329,7 @@ function criaPersonagem(id, x, y) {
 }
 
 function renderizaPersonagens() {
-	containerCriancas = $this.add.container(0, 0);
+	containerPersonagens = $this.add.container(0, 0);
 
 	let espacoEntrePersonagens = 0;
 	const totalPersonagens = 5;
@@ -329,12 +337,12 @@ function renderizaPersonagens() {
 	for (let id = 1; id <= totalPersonagens; id += 1) {
 		const offsetX = (id === 2) ? -50 : 0; // puxa o segundo um pouco pra esquerda
 		const personagem = criaPersonagem(id, espacoEntrePersonagens + offsetX, 0);
-		containerCriancas.add(personagem);
+		containerPersonagens.add(personagem);
 		espacoEntrePersonagens += 280;
 	}
 
-	console.log("---->", containerCriancas.list[0])
-	return containerCriancas;
+	console.log("---->", containerPersonagens.list[0])
+	return containerPersonagens;
 }
 
 const SABORES_PRATO = ['cupcake', 'morango', 'rosquinha'];
@@ -402,9 +410,9 @@ function iniciaJogo() {
 	aplicarFundoDaFase(fase);
 
 	// renderiza container com as crianças
-	let containerCriancas = renderizaPersonagens();
-	containerCriancas.setDepth(-3);
-	containerCriancas.y = 70;
+	let containerPersonagens = renderizaPersonagens();
+	containerPersonagens.setDepth(-3);
+	containerPersonagens.y = 70;
 
 	let mesa = $this.add.image(0, (gameHeight / 2) - 50, "mesa");
 	mesa.setOrigin(0, 0);
@@ -425,6 +433,11 @@ function iniciaJogo() {
 		// gameObject.setDepth(99);
 	});
 
+	$this.input.on('drop', function(_pointer, gameObject, dropZone) {
+		console.log("---> GameObject: ", gameObject);
+		console.log("---> DropZone: ", dropZone);
+});
+
 	// prato volta pra posição original
 	$this.input.on('dragend', function (_pointer, gameObject) {
 		gameObject.x = gameObject.initialXPos;
@@ -438,6 +451,44 @@ function iniciaJogo() {
 	}
 }
 
+// aqui só preciso sortear os ids dos pedidos p/ depois associar ao personagens
+function sorteioPedidos() {
+	const disponiveis = [1, 2, 3, 4, 5];
+  // fase = 3
+	for (let i = 1; i <= fase; i += 1) {
+			const indice = Math.floor(Math.random() * disponiveis.length);
+			const numeroSorteado = disponiveis.splice(indice, 1)[0];
+			pedidosDaRodada.push(numeroSorteado);
+	}
+}
+
+// sorteia os personagens direto pelo container para associar os ids dos pedidos
+function sorteioPersonagens() {
+	const disponiveis = [...containerPersonagens.list];
+	const resultado = [];
+
+	for (let i = 0; i < fase; i += 1) {
+			const indice = Math.floor(Math.random() * disponiveis.length);
+			const personagem = disponiveis.splice(indice, 1)[0];
+			resultado.push(personagem);
+	}
+
+	return resultado;
+}
+
+
+// function sorteia() {
+// 	const disponiveis = [1, 2, 3, 4, 5];
+
+// 	const resultado = [];
+// 	for (let i = 0; i < fase; i += 1) {
+// 			const indice = Math.floor(Math.random() * disponiveis.length);
+// 			const numeroSorteado = disponiveis.splice(indice, 1)[0];
+// 			resultado.push(numeroSorteado);
+// 	}
+// 	return resultado;
+// }
+
 /**
  * Inicia nova subfase.
  * @returns {void}
@@ -446,8 +497,24 @@ function novaSubFase() {
 	(debug && console.log('novaSubFase'));
 	$relogio.start();
 
+	sorteioPedidos();
+	personagensDaRodada = sorteioPersonagens();
 
-	//...
+	for (let i = 0; i < fase; i += 1) {
+		personagensDaRodada[i].setData('idPedido', pedidosDaRodada[i]);
+	}
+
+	(debug && console.log('---> pedidos da rodada:', pedidosDaRodada));
+	(debug && console.log('---> personagens da rodada:', personagensDaRodada.map(p => ({ id: p.getData('id'), idPedido: p.getData('idPedido') }))));
+	(debug && console.log('---> personagens da rodada:', containerPersonagens.list.map(p => ({ id: p.getData('id'), idPedido: p.getData('idPedido') }))));
+
+	// PRÓXIMOS PASSOS
+	// renderizar imagens de pedidos correspondes
+	// depois reset:
+	// 		limpa pedidosDaRodada
+	// 		limpa array de personagens sorteados (personagensDaRodada)
+	// 		esconde baloes novamente
+
 }
 
 /**
