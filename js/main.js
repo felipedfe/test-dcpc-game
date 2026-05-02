@@ -380,17 +380,63 @@ function fnJogo() {
 }
 
 function fimDeFase() {
-	(debug && console.log(`===== FIM DA FASE ${fase} =====`));
-	subFase = 1;
-	fase++;
-	$icones.reset();
-	containerPratos.destroy(true);
+	(debug && console.log(`===== FIM DA FASE ${fase} | acertos: ${totalAcertos} erros: ${totalErros} =====`));
 
-	if (fase > totalFases) {
-		fimDeJogo();
-	} else {
-		iniciaJogo();
-	}
+	let faseEncerrada = fase;
+
+	let bloqueador = $this.add.zone(0, 0, gameWidth, gameHeight)
+		.setOrigin(0, 0)
+		.setInteractive();
+
+	let overlay = $this.add.graphics();
+	overlay.fillStyle(0x000000, 0.7);
+	overlay.fillRect(0, 0, gameWidth, gameHeight);
+
+	let titulo = $this.make.text({
+		x: gameWidth >> 1,
+		y: 180,
+		text: 'FIM DA FASE ' + faseEncerrada,
+		style: { fontFamily: 'Dosis', fontSize: '60px', fill: '#ffcc00' }
+	}).setOrigin(0.5, 0.5);
+
+	let textoPlacar = $this.make.text({
+		x: gameWidth >> 1,
+		y: 580,
+		text: 'ACERTOS: ' + totalAcertos + '   ERROS: ' + totalErros,
+		style: { fontFamily: 'Dosis', fontSize: '36px', fill: '#ffffff' }
+	}).setOrigin(0.5, 0.5);
+
+	let btnRepetir = $this.add.image(360, 370, 'atlas', 'botao_repetir_fase')
+		.setInteractive()
+		.on('pointerdown', function () {
+			telaFimDeFase.destroy(true);
+			totalAcertos = 0;
+			totalErros = 0;
+			subFase = 1;
+			$icones.reset();
+			containerPratos.destroy(true);
+			iniciaJogo();
+		});
+
+	let btnProxima = $this.add.image(1000, 370, 'atlas', 'botao_proxima_fase')
+		.setInteractive()
+		.on('pointerdown', function () {
+			telaFimDeFase.destroy(true);
+			totalAcertos = 0;
+			totalErros = 0;
+			subFase = 1;
+			fase++;
+			$icones.reset();
+			containerPratos.destroy(true);
+
+			if (fase > totalFases) {
+				fimDeJogo();
+			} else {
+				iniciaJogo();
+			}
+		});
+
+	let telaFimDeFase = $this.add.container(0, 0, [bloqueador, overlay, titulo, textoPlacar, btnRepetir, btnProxima]);
 }
 
 function fimDeJogo() {
@@ -430,7 +476,6 @@ function sorteioPersonagens() {
 
 	return resultado;
 }
-
 
 // function sorteia() {
 // 	const disponiveis = [1, 2, 3, 4, 5];
@@ -601,6 +646,7 @@ let acertos = {
 		this.val = v;
 		if (!v)
 			return;
+		totalAcertos++;
 		$icones.define(true);
 	}
 };
@@ -613,6 +659,7 @@ let erros = {
 		this.val = v;
 		if (!v)
 			return;
+		totalErros++;
 		$icones.define(false);
 	}
 };

@@ -1,5 +1,7 @@
 'use strict';
 
+// separei aqui as funcções que renderizam sprites e imagens do jogo
+
 // fundo
 function aplicarFundoDaFase(faseAtual) {
 	const key = fundoPorFase[faseAtual] ?? 'parede_1';
