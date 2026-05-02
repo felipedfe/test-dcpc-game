@@ -302,7 +302,7 @@ function fnJogo() {
 
 	renderizaPedidos();
 
-	// eventos de drag
+	// EVENTOS DE DRAG
 	$this.input.on('dragstart', function (_pointer, gameObject) {
 		containerPratos.bringToTop(gameObject);
 	});
@@ -312,12 +312,28 @@ function fnJogo() {
 		gameObject.y = dragY;
 	});
 
+	$this.input.on('dragenter', function (_pointer, prato, personagem) {
+		console.log("------------------> ", personagem)
+
+		if (personagem.data.list.idPedido) {
+			console.log("+++++++++++++++++++")
+			console.log("+++++++++++++++++++")
+			console.log("+++++++++++++++++++")
+			console.log("+++++++++++++++++++")
+		}
+
+		$this.tweens.add({ targets: prato, alpha: 0.6, duration: 150 });
+	});
+	$this.input.on('dragleave', function (_pointer, prato) {
+		$this.tweens.add({ targets: prato, alpha: 1, duration: 150 });
+	});
+
 	$this.input.on('drop', function (_pointer, prato, personagem) {
 		// prato sempre volta pra posição original após drop
 		prato.x = prato.initialXPos;
 		prato.y = prato.initialYPos;
 
-		let idPrato  = prato.getData('id');
+		let idPrato = prato.getData('id');
 		let idPedido = personagem.getData('idPedido');
 
 		// personagem não fez pedido, ignora o drop
@@ -354,7 +370,7 @@ function fnJogo() {
 		}
 
 		// acerto parcial, relógio continua correndo
-		if (!todosEntregues) return; 
+		if (!todosEntregues) return;
 
 		// acerto total
 		$relogio.reset();
@@ -510,7 +526,13 @@ function novaSubFase() {
 		personagensDaRodada[i].setData('idPedido', pedidosDaRodada[i]);
 	}
 
-	mostraPedidos();
+	// esse delay aqui é só pra 1a rodada porque o pedido precisa aparecer na tela depois da anima de entrada dos personagens
+	if (fase === 1 && subFase === 1) {
+		$this.time.delayedCall(1000, mostraPedidos);
+	} else {
+		mostraPedidos();
+	}
+
 
 	(debug && console.log('---> pedidos da rodada:', pedidosDaRodada));
 	(debug && console.log('---> personagens da rodada:', personagensDaRodada.map(p => ({ id: p.getData('id'), idPedido: p.getData('idPedido') }))));

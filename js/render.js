@@ -2,7 +2,7 @@
 
 // separei aqui as funcções que renderizam sprites e imagens do jogo
 
-// fundo
+// FUNDO
 function aplicarFundoDaFase(faseAtual) {
 	const key = fundoPorFase[faseAtual] ?? 'parede_1';
 	if (!fundoSprite) {
@@ -13,7 +13,7 @@ function aplicarFundoDaFase(faseAtual) {
 	}
 }
 
-// pedidos
+// PEDIDOS
 function renderizaPedidos() {
 	containerPedidos = $this.add.container(0, 0);
 	const totalPedidos = 5;
@@ -53,7 +53,7 @@ function escondePedidos() {
 	});
 }
 
-// personagens
+// PERSONAGENS
 function criaPersonagem(id, x, y) {
 	const personagem = $this.add
 		.sprite(x, y, 'atlas', 'crianca_' + id + '_normal')
@@ -61,9 +61,18 @@ function criaPersonagem(id, x, y) {
 		.setInteractive()
 		.setData('id', id)
 		.setData('estado', 'normal')
-		.setData('idPedido', -1);
+		.setData('idPedido', -1)
 
 	personagem.input.dropZone = true;
+	personagem.y = 300;
+
+	$this.tweens.add({
+		targets: personagem,
+		y: 0,
+		duration: 400,
+		ease: 'Back.easeOut',
+		delay: id * 50
+	})
 
 	return personagem;
 }
@@ -84,7 +93,7 @@ function renderizaPersonagens() {
 	return containerPersonagens;
 }
 
-// pratos
+// PRATOS
 const SABORES_PRATO = ['cupcake', 'morango', 'rosquinha'];
 
 function escolheSaborPratoAleatorio() {
@@ -110,6 +119,15 @@ function criaPrato(id, x, y, sabor) {
 		.setOrigin(0, 0)
 		.setInteractive()
 		.setData('id', id)
+		.setAlpha(0);
+
+	// anima de entrada
+	$this.tweens.add({
+		targets: prato,
+		alpha: 1,
+		duration: 0,
+		delay: id * 120
+	})
 
 	prato.initialXPos = x;
 	prato.initialYPos = y;
