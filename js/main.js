@@ -143,17 +143,15 @@ const fundoPorFase = {
 	3: 'parede_3',
 };
 
-let fundoSprite; // Phaser.GameObjects.Image
+// guarda um Phaser.GameObjects.Image
+let fundoSprite;
 
-// guarda os gameObjects das crianças
+// guarda os GameObjects das crianças
 let containerPersonagens;
 
 let containerPratos;
 
 let containerPedidos;
-
-// variável pra guardar os acertos dentro de uma subFase (quando prato é entregue pro personagem certo)
-let acertosNaSubfase;
 
 // onde guardamos os pedidos de cada subFase
 let pedidosDaRodada = [];
@@ -271,9 +269,15 @@ function fnJogo() {
 		}
 	});
 
-	// EXEMPLO //
 	$relogio.onStop = function () {
+		const eraUltimaSubFase = subFase === totalSubFases;
 		erros.value++;
+
+		if (!eraUltimaSubFase) {
+			novaSubFase();
+		} else {
+			fimDeFase();
+		}
 	}
 
 	// Ícones e relógio
@@ -287,7 +291,56 @@ function fnJogo() {
 		textoFase
 	]);
 
+	// cria personagens e pedidos
+	renderizaPersonagens();
+	containerPersonagens.setDepth(-3);
+	containerPersonagens.y = 90;
+
+	let mesa = $this.add.image(0, (gameHeight / 2) - 30, "mesa");
+	mesa.setOrigin(0, 0);
+	mesa.setDepth(-3);
+
+	renderizaPedidos();
+
+	// eventos de drag
+	$this.input.on('dragstart', function (_pointer, gameObject) {
+		containerPratos.bringToTop(gameObject);
+	});
+
+	$this.input.on('drag', function (_pointer, gameObject, dragX, dragY) {
+		gameObject.x = dragX;
+		gameObject.y = dragY;
+	});
+
+	$this.input.on('drop', function (_pointer, gameObject, dropZone) {
+		console.log("---> GameObject: ", gameObject);
+		console.log("---> DropZone: ", dropZone);
+	});
+
+	$this.input.on('dragend', function (_pointer, gameObject) {
+		gameObject.x = gameObject.initialXPos;
+		gameObject.y = gameObject.initialYPos;
+	});
+
 	iniciaJogo();
+}
+
+function fimDeFase() {
+	(debug && console.log(`===== FIM DA FASE ${fase} =====`));
+	subFase = 1;
+	fase++;
+	$icones.reset();
+	containerPratos.destroy(true);
+
+	if (fase > totalFases) {
+		fimDeJogo();
+	} else {
+		iniciaJogo();
+	}
+}
+
+function fimDeJogo() {
+	(debug && console.log('===== FIM DE JOGO ====='));
 }
 
 function aplicarFundoDaFase(faseAtual) {
@@ -317,7 +370,7 @@ function mostraPedidos() {
 	for (let i = 0; i < personagensDaRodada.length; i += 1) {
 		const personagem = personagensDaRodada[i];
 		const idPedido = personagem.getData('idPedido');
-		const balao = containerPedidos.list.find(function(b) {
+		const balao = containerPedidos.list.find(function (b) {
 			return b.getData('id') === idPedido;
 		});
 
@@ -334,7 +387,7 @@ function mostraPedidos() {
 }
 
 function escondePedidos() {
-	containerPedidos.iterate(function(balao) {
+	containerPedidos.iterate(function (balao) {
 		balao.setVisible(false);
 	});
 }
@@ -432,58 +485,19 @@ function iniciaJogo() {
 	(debug && console.log('iniciaJogo'));
 	textoFase.text = 'FASE ' + fase;
 
-	// fase = 3;
 	aplicarFundoDaFase(fase);
-
-	// renderiza container com as crianças
-	let containerPersonagens = renderizaPersonagens();
-	containerPersonagens.setDepth(-3);
-	containerPersonagens.y = 90;
-
-	let mesa = $this.add.image(0, (gameHeight / 2) - 30, "mesa");
-	mesa.setOrigin(0, 0);
-	mesa.setDepth(-3);
-
-	// let containerPratos = renderizaPratos();
 	renderizaPratos();
-	renderizaPedidos();
-
-	$this.input.on('dragstart', function (_pointer, gameObject) {
-		containerPratos.bringToTop(gameObject);
-	});
-
-	$this.input.on('drag', function (_pointer, gameObject, dragX, dragY) {
-		gameObject.x = dragX;
-		gameObject.y = dragY;
-		// gameObject.setDepth(99);
-	});
-
-	$this.input.on('drop', function(_pointer, gameObject, dropZone) {
-		console.log("---> GameObject: ", gameObject);
-		console.log("---> DropZone: ", dropZone);
-});
-
-	// prato volta pra posição original
-	$this.input.on('dragend', function (_pointer, gameObject) {
-		gameObject.x = gameObject.initialXPos;
-		gameObject.y = gameObject.initialYPos;
-	});
-
-	if (subFase === totalSubFases) {
-		//...
-	} else {
-		novaSubFase();
-	}
+	novaSubFase();
 }
 
 // aqui só preciso sortear os ids dos pedidos p/ depois associar ao personagens
 function sorteioPedidos() {
 	const disponiveis = [1, 2, 3, 4, 5];
-  // fase = 3
+	// fase = 3
 	for (let i = 1; i <= fase; i += 1) {
-			const indice = Math.floor(Math.random() * disponiveis.length);
-			const numeroSorteado = disponiveis.splice(indice, 1)[0];
-			pedidosDaRodada.push(numeroSorteado);
+		const indice = Math.floor(Math.random() * disponiveis.length);
+		const numeroSorteado = disponiveis.splice(indice, 1)[0];
+		pedidosDaRodada.push(numeroSorteado);
 	}
 }
 
@@ -493,9 +507,9 @@ function sorteioPersonagens() {
 	const resultado = [];
 
 	for (let i = 0; i < fase; i += 1) {
-			const indice = Math.floor(Math.random() * disponiveis.length);
-			const personagem = disponiveis.splice(indice, 1)[0];
-			resultado.push(personagem);
+		const indice = Math.floor(Math.random() * disponiveis.length);
+		const personagem = disponiveis.splice(indice, 1)[0];
+		resultado.push(personagem);
 	}
 
 	return resultado;
@@ -523,7 +537,7 @@ function novaSubFase() {
 
 	// reset da subfase anterior
 	escondePedidos();
-	containerPersonagens.iterate(function(p) { p.setData('idPedido', -1); });
+	containerPersonagens.iterate(function (p) { p.setData('idPedido', -1); });
 	pedidosDaRodada = [];
 
 	$relogio.start();
@@ -621,7 +635,7 @@ let $relogio = {
 			key: 'relogio',
 			frames: $this.anims.generateFrameNames('atlas', {
 				prefix: 'tempo_',
-				end: 12,
+				end: 4,
 				zeroPad: 2
 			}), repeat: 0
 		});
