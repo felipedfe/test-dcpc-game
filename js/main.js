@@ -295,6 +295,7 @@ function fnJogo() {
 	renderizaPersonagens();
 	containerPersonagens.setDepth(-3);
 	containerPersonagens.y = 90;
+	iniciaPiscar();
 
 	renderizaPratos();
 
@@ -312,6 +313,11 @@ function fnJogo() {
 	$this.input.on('drag', function (_pointer, gameObject, dragX, dragY) {
 		gameObject.x = dragX;
 		gameObject.y = dragY;
+
+		personagensDaRodada.map(function (personagem) {
+			const id = personagem.getData('id');
+			personagem.setFrame('crianca_' + id + '_boca');
+		})
 	});
 
 	$this.input.on('dragenter', function (_pointer, prato, personagem) {
@@ -378,7 +384,7 @@ function fnJogo() {
 			on: false
 		});
 		emitter.explode(20, _pointer.x, _pointer.y);
-		$this.time.delayedCall(600, function() { particles.destroy(); });
+		$this.time.delayedCall(600, function () { particles.destroy(); });
 
 		// verifica se ainda há pedidos pendentes
 		let todosEntregues = true;
@@ -409,6 +415,13 @@ function fnJogo() {
 		if (!dropped) {
 			gameObject.x = gameObject.initialXPos;
 			gameObject.y = gameObject.initialYPos;
+		}
+
+		if (personagensDaRodada) {
+			personagensDaRodada.map(function (personagem) {
+				const id = personagem.getData('id');
+				personagem.setFrame('crianca_' + id + '_normal');
+			});
 		}
 	});
 

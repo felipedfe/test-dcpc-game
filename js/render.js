@@ -93,6 +93,26 @@ function renderizaPersonagens() {
 	return containerPersonagens;
 }
 
+function agendaProximoPiscar(personagem) {
+	let delay = Phaser.Math.Between(5000, 10000);
+	$this.time.delayedCall(delay, function() {
+			let id = personagem.getData('id');
+			personagem.setFrame('crianca_' + id + '_olho');
+
+			$this.time.delayedCall(150, function() {
+					personagem.setFrame('crianca_' + id + '_normal');
+					agendaProximoPiscar(personagem);
+			});
+	});
+}
+
+function iniciaPiscar() {
+	containerPersonagens.iterate(function(personagem) {
+			agendaProximoPiscar(personagem);
+	});
+}
+
+
 // PRATOS
 const SABORES_PRATO = ['cupcake', 'morango', 'rosquinha'];
 
