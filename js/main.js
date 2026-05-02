@@ -366,6 +366,20 @@ function fnJogo() {
 		if (balao) balao.setVisible(false);
 		personagem.setData('idPedido', 0);
 
+		// estrelinhas de acerto
+		let particles = $this.add.particles('atlas');
+		let emitter = particles.createEmitter({
+			frame: 'estrela',
+			speed: { min: 100, max: 300 },
+			angle: { min: 0, max: 360 },
+			scale: { start: 1.3, end: 0 },
+			alpha: { start: 1, end: 0 },
+			lifespan: 600,
+			on: false
+		});
+		emitter.explode(20, _pointer.x, _pointer.y);
+		$this.time.delayedCall(600, function() { particles.destroy(); });
+
 		// verifica se ainda há pedidos pendentes
 		let todosEntregues = true;
 		for (let i = 0; i < personagensDaRodada.length; i += 1) {
