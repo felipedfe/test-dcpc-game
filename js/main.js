@@ -312,14 +312,68 @@ function fnJogo() {
 		gameObject.y = dragY;
 	});
 
-	$this.input.on('drop', function (_pointer, gameObject, dropZone) {
-		console.log("---> GameObject: ", gameObject);
-		console.log("---> DropZone: ", dropZone);
+	$this.input.on('drop', function (_pointer, prato, personagem) {
+		// prato sempre volta pra posição original após drop
+		prato.x = prato.initialXPos;
+		prato.y = prato.initialYPos;
+
+		var idPrato  = prato.getData('id');
+		var idPedido = personagem.getData('idPedido');
+
+		// personagem não fez pedido, ignora o drop
+		if (idPedido === -1) return;
+
+		if (idPrato !== idPedido) {
+			// entrega errada
+			$relogio.reset();
+			var eraUltimaSubFase = subFase === totalSubFases;
+			erros.value++;
+
+			if (!eraUltimaSubFase) {
+				novaSubFase();
+			} else {
+				fimDeFase();
+			}
+			return;
+		}
+
+		// entrega certa, esconde o balão e marca o personagem como atendido
+		var balao = containerPedidos.list.find(function (b) {
+			return b.getData('id') === idPedido;
+		});
+		if (balao) balao.setVisible(false);
+		personagem.setData('idPedido', -1);
+
+		// verifica se ainda há pedidos pendentes
+		var todosEntregues = true;
+		for (var i = 0; i < personagensDaRodada.length; i += 1) {
+			if (personagensDaRodada[i].getData('idPedido') !== -1) {
+				todosEntregues = false;
+				break;
+			}
+		}
+
+		// acerto parcial, relógio continua correndo
+		if (!todosEntregues) return; 
+
+		// acerto total
+		$relogio.reset();
+		var eraUltimaSubFaseAcerto = subFase === totalSubFases;
+		acertos.value++;
+
+		if (!eraUltimaSubFaseAcerto) {
+			novaSubFase();
+		} else {
+			fimDeFase();
+		}
 	});
 
-	$this.input.on('dragend', function (_pointer, gameObject) {
-		gameObject.x = gameObject.initialXPos;
-		gameObject.y = gameObject.initialYPos;
+	$this.input.on('dragend', function (_pointer, gameObject, dropped) {
+		// só retorna se soltou no vazio (sem drop zone)
+		if (!dropped) {
+			gameObject.x = gameObject.initialXPos;
+			gameObject.y = gameObject.initialYPos;
+		}
 	});
 
 	iniciaJogo();
@@ -554,7 +608,6 @@ function novaSubFase() {
 	(debug && console.log('---> pedidos da rodada:', pedidosDaRodada));
 	(debug && console.log('---> personagens da rodada:', personagensDaRodada.map(p => ({ id: p.getData('id'), idPedido: p.getData('idPedido') }))));
 
-	//...
 }
 
 /**
@@ -635,7 +688,7 @@ let $relogio = {
 			key: 'relogio',
 			frames: $this.anims.generateFrameNames('atlas', {
 				prefix: 'tempo_',
-				end: 4,
+				end: 12,
 				zeroPad: 2
 			}), repeat: 0
 		});
@@ -665,6 +718,7 @@ let $relogio = {
 		(debug && console.log('$relogio.stop'));
 	},
 	reset: function () {
+		clearInterval($relogio.interval);
 		relogio.anims.restart();
 		relogio.anims.stop();
 		($relogio.onReset && $relogio.onReset());
