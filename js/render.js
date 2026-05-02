@@ -61,7 +61,7 @@ function criaPersonagem(id, x, y) {
 		.setInteractive()
 		.setData('id', id)
 		.setData('estado', 'normal')
-		.setData('idPedido', -1)
+		.setData('idPedido', 0)
 
 	personagem.input.dropZone = true;
 	personagem.y = 300;

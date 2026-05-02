@@ -296,6 +296,8 @@ function fnJogo() {
 	containerPersonagens.setDepth(-3);
 	containerPersonagens.y = 90;
 
+	renderizaPratos();
+
 	let mesa = $this.add.image(0, (gameHeight / 2) - 30, "mesa");
 	mesa.setOrigin(0, 0);
 	mesa.setDepth(-3);
@@ -313,31 +315,35 @@ function fnJogo() {
 	});
 
 	$this.input.on('dragenter', function (_pointer, prato, personagem) {
-		console.log("------------------> ", personagem)
-
 		if (personagem.data.list.idPedido) {
-			console.log("+++++++++++++++++++")
-			console.log("+++++++++++++++++++")
-			console.log("+++++++++++++++++++")
-			console.log("+++++++++++++++++++")
+			$this.tweens.add({ targets: prato, alpha: 0.6, duration: 0 });
 		}
-
-		$this.tweens.add({ targets: prato, alpha: 0.6, duration: 150 });
 	});
+
 	$this.input.on('dragleave', function (_pointer, prato) {
-		$this.tweens.add({ targets: prato, alpha: 1, duration: 150 });
+		$this.tweens.add({ targets: prato, alpha: 1, duration: 0 });
 	});
 
 	$this.input.on('drop', function (_pointer, prato, personagem) {
 		// prato sempre volta pra posição original após drop
-		prato.x = prato.initialXPos;
-		prato.y = prato.initialYPos;
+		// prato.x = prato.initialXPos;
+		// prato.y = prato.initialYPos;
+		$this.tweens.add({
+			targets: prato,
+			alpha: 0,
+			duration: 100,
+			onComplete: function () {
+				prato.x = prato.initialXPos;
+				prato.y = prato.initialYPos;
+				$this.tweens.add({ targets: prato, alpha: 1, duration: 200 });
+			}
+		});
 
 		let idPrato = prato.getData('id');
 		let idPedido = personagem.getData('idPedido');
 
 		// personagem não fez pedido, ignora o drop
-		if (idPedido === -1) return;
+		if (!idPedido) return;
 
 		if (idPrato !== idPedido) {
 			// entrega errada
@@ -358,12 +364,12 @@ function fnJogo() {
 			return b.getData('id') === idPedido;
 		});
 		if (balao) balao.setVisible(false);
-		personagem.setData('idPedido', -1);
+		personagem.setData('idPedido', 0);
 
 		// verifica se ainda há pedidos pendentes
 		let todosEntregues = true;
 		for (let i = 0; i < personagensDaRodada.length; i += 1) {
-			if (personagensDaRodada[i].getData('idPedido') !== -1) {
+			if (personagensDaRodada[i].getData('idPedido')) {
 				todosEntregues = false;
 				break;
 			}
@@ -430,7 +436,7 @@ function fimDeFase() {
 			totalErros = 0;
 			subFase = 1;
 			$icones.reset();
-			containerPratos.destroy(true);
+			// containerPratos.destroy(true);
 			iniciaJogo();
 		});
 
@@ -443,7 +449,6 @@ function fimDeFase() {
 			subFase = 1;
 			fase++;
 			$icones.reset();
-			containerPratos.destroy(true);
 
 			if (fase > totalFases) {
 				fimDeJogo();
@@ -464,7 +469,6 @@ function iniciaJogo() {
 	textoFase.text = 'FASE ' + fase;
 
 	aplicarFundoDaFase(fase);
-	renderizaPratos();
 	novaSubFase();
 }
 
@@ -514,7 +518,7 @@ function novaSubFase() {
 
 	// reset da subfase anterior
 	escondePedidos();
-	containerPersonagens.iterate(function (p) { p.setData('idPedido', -1); });
+	containerPersonagens.iterate(function (p) { p.setData('idPedido', 0); });
 	pedidosDaRodada = [];
 
 	$relogio.start();
