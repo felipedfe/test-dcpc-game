@@ -125,16 +125,28 @@ let subFase = 1;
 let totalSubFases = 5;
 
 /**
- * Total de erros
+ * Total de erros na fase atual
  * @type int
  */
 let totalErros = 0;
 
 /**
- * Total de acertos
+ * Total de acertos na fase atual
  * @type int
  */
 let totalAcertos = 0;
+
+/**
+ * Total de erros acumulado no jogo inteiro
+ * @type int
+ */
+let errosJogo = 0;
+
+/**
+ * Total de acertos acumulado no jogo inteiro
+ * @type int
+ */
+let acertosJogo = 0;
 
 // -------------------
 const fundoPorFase = {
@@ -157,6 +169,8 @@ let containerPedidos;
 let pedidosDaRodada = [];
 
 let personagensDaRodada;
+
+let primeiraRodadaDePratos = true;
 
 // -------------------
 
@@ -297,8 +311,6 @@ function fnJogo() {
 	containerPersonagens.y = 90;
 	iniciaPiscar();
 
-	renderizaPratos();
-
 	let mesa = $this.add.image(0, (gameHeight / 2) - 30, "mesa");
 	mesa.setOrigin(0, 0);
 	mesa.setDepth(-3);
@@ -371,6 +383,10 @@ function fnJogo() {
 		});
 		if (balao) balao.setVisible(false);
 		personagem.setData('idPedido', 0);
+		personagem.setFrame('crianca_' + personagem.getData('id') + '_normal');
+
+		let idx = personagensDaRodada.indexOf(personagem);
+		if (idx !== -1) personagensDaRodada.splice(idx, 1);
 
 		// estrelinhas de acerto
 		let particles = $this.add.particles('atlas');
@@ -431,6 +447,11 @@ function fnJogo() {
 function fimDeFase() {
 	(debug && console.log(`===== FIM DA FASE ${fase} | acertos: ${totalAcertos} erros: ${totalErros} =====`));
 
+	if (fase === totalFases) {
+		fimDeJogo();
+		return;
+	}
+
 	let faseEncerrada = fase;
 
 	let bloqueador = $this.add.zone(0, 0, gameWidth, gameHeight)
@@ -463,7 +484,7 @@ function fimDeFase() {
 			totalErros = 0;
 			subFase = 1;
 			$icones.reset();
-			// containerPratos.destroy(true);
+			containerPratos.destroy(true);
 			iniciaJogo();
 		});
 
@@ -476,6 +497,7 @@ function fimDeFase() {
 			subFase = 1;
 			fase++;
 			$icones.reset();
+			containerPratos.destroy(true);
 
 			if (fase > totalFases) {
 				fimDeJogo();
@@ -488,7 +510,63 @@ function fimDeFase() {
 }
 
 function fimDeJogo() {
-	(debug && console.log('===== FIM DE JOGO ====='));
+	(debug && console.log(`===== FIM DE JOGO | acertos: ${acertosJogo} erros: ${errosJogo} =====`));
+
+	let bloqueador = $this.add.zone(0, 0, gameWidth, gameHeight)
+		.setOrigin(0, 0)
+		.setInteractive();
+
+	let overlay = $this.add.graphics();
+	overlay.fillStyle(0x000000, 0.7);
+	overlay.fillRect(0, 0, gameWidth, gameHeight);
+
+	let comida = $this.add.image(gameWidth >> 1, 100, 'atlas', 'comidas')
+		.setOrigin(0.5, 0.5);
+
+	let titulo = $this.make.text({
+		x: gameWidth >> 1,
+		y: 220,
+		text: 'FIM DE JOGO',
+		style: { fontFamily: 'Dosis', fontSize: '60px', fill: '#ffcc00' }
+	}).setOrigin(0.5, 0.5);
+
+	let textoPlacar = $this.make.text({
+		x: gameWidth >> 1,
+		y: 600,
+		text: 'ACERTOS: ' + acertosJogo + '   ERROS: ' + errosJogo,
+		style: { fontFamily: 'Dosis', fontSize: '36px', fill: '#ffffff' }
+	}).setOrigin(0.5, 0.5);
+
+	let btnRepetir = $this.add.image(340, 370, 'atlas', 'botao_repetir_fase')
+		.setInteractive()
+		.on('pointerdown', function () {
+			telaFimDeJogo.destroy(true);
+			acertosJogo = 0;
+			errosJogo = 0;
+			totalAcertos = 0;
+			totalErros = 0;
+			subFase = 1;
+			$icones.reset();
+			containerPratos.destroy(true);
+			iniciaJogo();
+		});
+
+	let btnJogarNovamente = $this.add.image(1000, 370, 'atlas', 'botao_jogar_novamente')
+		.setInteractive()
+		.on('pointerdown', function () {
+			telaFimDeJogo.destroy(true);
+			acertosJogo = 0;
+			errosJogo = 0;
+			totalAcertos = 0;
+			totalErros = 0;
+			fase = 1;
+			subFase = 1;
+			$icones.reset();
+			containerPratos.destroy(true);
+			iniciaJogo();
+		});
+
+	let telaFimDeJogo = $this.add.container(0, 0, [bloqueador, overlay, comida, titulo, textoPlacar, btnRepetir, btnJogarNovamente]);
 }
 
 function iniciaJogo() {
@@ -496,6 +574,7 @@ function iniciaJogo() {
 	textoFase.text = 'FASE ' + fase;
 
 	aplicarFundoDaFase(fase);
+	renderizaPratos();
 	novaSubFase();
 }
 
@@ -545,7 +624,10 @@ function novaSubFase() {
 
 	// reset da subfase anterior
 	escondePedidos();
-	containerPersonagens.iterate(function (p) { p.setData('idPedido', 0); });
+	containerPersonagens.iterate(function (p) {
+		p.setData('idPedido', 0);
+		p.setFrame('crianca_' + p.getData('id') + '_normal');
+	});
 	pedidosDaRodada = [];
 
 	$relogio.start();
@@ -700,6 +782,7 @@ let acertos = {
 		if (!v)
 			return;
 		totalAcertos++;
+		acertosJogo++;
 		$icones.define(true);
 	}
 };
@@ -713,6 +796,7 @@ let erros = {
 		if (!v)
 			return;
 		totalErros++;
+		errosJogo++;
 		$icones.define(false);
 	}
 };

@@ -139,15 +139,16 @@ function criaPrato(id, x, y, sabor) {
 		.setOrigin(0, 0)
 		.setInteractive()
 		.setData('id', id)
-		.setAlpha(0);
+		.setAlpha(primeiraRodadaDePratos ? 0 : 1);
 
-	// anima de entrada
-	$this.tweens.add({
-		targets: prato,
-		alpha: 1,
-		duration: 0,
-		delay: id * 120
-	})
+	if (primeiraRodadaDePratos) {
+		$this.tweens.add({
+			targets: prato,
+			alpha: 1,
+			duration: 0,
+			delay: id * 120
+		});
+	}
 
 	prato.initialXPos = x;
 	prato.initialYPos = y;
@@ -177,5 +178,6 @@ function renderizaPratos() {
 		posXDoPrato += espacoHorizontal;
 	}
 
+	primeiraRodadaDePratos = false;
 	return containerPratos;
 }
