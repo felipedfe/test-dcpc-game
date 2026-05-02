@@ -301,16 +301,42 @@ function aplicarFundoDaFase(faseAtual) {
 }
 
 function renderizaPedidos() {
-	containerPedidos = $this.add.container(100, 100);
+	containerPedidos = $this.add.container(0, 0);
 	const totalPedidos = 5;
 
 	for (let id = 1; id <= totalPedidos; id += 1) {
-		const balao = $this.add.sprite(0, 0, 'atlas', 'pedido_' + id )
+		const balao = $this.add.sprite(0, 0, 'atlas', 'pedido_' + id)
 			.setOrigin(0, 0)
 			.setData('id', id)
 			.setVisible(false);
 		containerPedidos.add(balao);
 	}
+}
+
+function mostraPedidos() {
+	for (let i = 0; i < personagensDaRodada.length; i += 1) {
+		const personagem = personagensDaRodada[i];
+		const idPedido = personagem.getData('idPedido');
+		const balao = containerPedidos.list.find(function(b) {
+			return b.getData('id') === idPedido;
+		});
+
+		if (balao) {
+			if (personagensDaRodada[i].getData('id') === 5) {
+				balao.x = containerPersonagens.x + personagem.x + 80;
+			} else {
+				balao.x = containerPersonagens.x + personagem.x + 140;
+			}
+			balao.y = containerPersonagens.y + personagem.y - 80;
+			balao.setVisible(true);
+		}
+	}
+}
+
+function escondePedidos() {
+	containerPedidos.iterate(function(balao) {
+		balao.setVisible(false);
+	});
 }
 
 // renderiza sprites das crianças
@@ -412,15 +438,14 @@ function iniciaJogo() {
 	// renderiza container com as crianças
 	let containerPersonagens = renderizaPersonagens();
 	containerPersonagens.setDepth(-3);
-	containerPersonagens.y = 70;
+	containerPersonagens.y = 90;
 
-	let mesa = $this.add.image(0, (gameHeight / 2) - 50, "mesa");
+	let mesa = $this.add.image(0, (gameHeight / 2) - 30, "mesa");
 	mesa.setOrigin(0, 0);
 	mesa.setDepth(-3);
 
 	// let containerPratos = renderizaPratos();
 	renderizaPratos();
-
 	renderizaPedidos();
 
 	$this.input.on('dragstart', function (_pointer, gameObject) {
@@ -495,6 +520,12 @@ function sorteioPersonagens() {
  */
 function novaSubFase() {
 	(debug && console.log('novaSubFase'));
+
+	// reset da subfase anterior
+	escondePedidos();
+	containerPersonagens.iterate(function(p) { p.setData('idPedido', -1); });
+	pedidosDaRodada = [];
+
 	$relogio.start();
 
 	sorteioPedidos();
@@ -504,17 +535,12 @@ function novaSubFase() {
 		personagensDaRodada[i].setData('idPedido', pedidosDaRodada[i]);
 	}
 
+	mostraPedidos();
+
 	(debug && console.log('---> pedidos da rodada:', pedidosDaRodada));
 	(debug && console.log('---> personagens da rodada:', personagensDaRodada.map(p => ({ id: p.getData('id'), idPedido: p.getData('idPedido') }))));
-	(debug && console.log('---> personagens da rodada:', containerPersonagens.list.map(p => ({ id: p.getData('id'), idPedido: p.getData('idPedido') }))));
 
-	// PRÓXIMOS PASSOS
-	// renderizar imagens de pedidos correspondes
-	// depois reset:
-	// 		limpa pedidosDaRodada
-	// 		limpa array de personagens sorteados (personagensDaRodada)
-	// 		esconde baloes novamente
-
+	//...
 }
 
 /**
