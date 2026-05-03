@@ -172,6 +172,8 @@ let personagensDaRodada;
 
 let primeiraRodadaDePratos = true;
 
+let musicaFundo;
+
 // -------------------
 
 /**
@@ -234,6 +236,13 @@ function preload() {
 	this.load.image("parede_2", "./assets/parede_2.jpg");
 	this.load.image("parede_3", "./assets/parede_3.jpg");
 	this.load.image("bg_cj", "./assets/comojogar.jpg");
+	this.load.audio("prato", "./assets/audio/prato.m4a");
+	this.load.audio('um', './assets/audio/um.m4a');
+	this.load.audio('dois', './assets/audio/dois.m4a');
+	this.load.audio('tres', './assets/audio/tres.m4a');
+	this.load.audio('quatro', './assets/audio/quatro.m4a');
+	this.load.audio('cinco', './assets/audio/cinco.m4a');
+	this.load.audio("fundo", "./assets/audio/fundo.m4a");
 	this.load.atlas('atlas', './assets/atlas/texture.png', './assets/atlas/texture.json');
 }
 
@@ -271,6 +280,9 @@ function create() {
  */
 function fnJogo() {
 	(debug && console.log('fnJogo'));
+
+	musicaFundo = $this.sound.add('fundo', { loop: true, volume: 1 });
+	musicaFundo.play();
 
 	// Texto 'FASE X'
 	textoFase = $this.make.text({

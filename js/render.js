@@ -14,6 +14,8 @@ function aplicarFundoDaFase(faseAtual) {
 }
 
 // PEDIDOS
+const AUDIO_NUMEROS = ['um', 'dois', 'tres', 'quatro', 'cinco'];
+
 function renderizaPedidos() {
 	containerPedidos = $this.add.container(0, 0);
 	const totalPedidos = 5;
@@ -43,6 +45,7 @@ function mostraPedidos() {
 			}
 			balao.y = containerPersonagens.y + personagem.y - 80;
 			balao.setVisible(true);
+			$this.sound.play(AUDIO_NUMEROS[idPedido - 1]);
 		}
 	}
 }
@@ -147,6 +150,9 @@ function criaPrato(id, x, y, sabor) {
 			alpha: 1,
 			duration: 0,
 			delay: id * 120
+		});
+		$this.time.delayedCall(id * 120, function() {
+			$this.sound.play('prato');
 		});
 	}
 

@@ -10,6 +10,8 @@ function fimDeFase() {
 		return;
 	}
 
+	musicaFundo.setVolume(0.5);
+
 	let faseEncerrada = fase;
 
 	let bloqueador = $this.add.zone(0, 0, gameWidth, gameHeight)
@@ -38,6 +40,7 @@ function fimDeFase() {
 		.setInteractive()
 		.on('pointerdown', function () {
 			telaFimDeFase.destroy(true);
+			musicaFundo.setVolume(1);
 			totalAcertos = 0;
 			totalErros = 0;
 			subFase = 1;
@@ -50,6 +53,7 @@ function fimDeFase() {
 		.setInteractive()
 		.on('pointerdown', function () {
 			telaFimDeFase.destroy(true);
+			musicaFundo.setVolume(1);
 			totalAcertos = 0;
 			totalErros = 0;
 			subFase = 1;
@@ -69,6 +73,8 @@ function fimDeFase() {
 
 function fimDeJogo() {
 	(debug && console.log(`===== FIM DE JOGO | acertos: ${acertosJogo} erros: ${errosJogo} =====`));
+
+	musicaFundo.setVolume(0.5);
 
 	let bloqueador = $this.add.zone(0, 0, gameWidth, gameHeight)
 		.setOrigin(0, 0)
@@ -99,6 +105,7 @@ function fimDeJogo() {
 		.setInteractive()
 		.on('pointerdown', function () {
 			telaFimDeJogo.destroy(true);
+			musicaFundo.setVolume(1);
 			acertosJogo = 0;
 			errosJogo = 0;
 			totalAcertos = 0;
@@ -113,6 +120,7 @@ function fimDeJogo() {
 		.setInteractive()
 		.on('pointerdown', function () {
 			telaFimDeJogo.destroy(true);
+			musicaFundo.setVolume(1);
 			acertosJogo = 0;
 			errosJogo = 0;
 			totalAcertos = 0;
