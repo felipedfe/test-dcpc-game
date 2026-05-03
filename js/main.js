@@ -174,6 +174,9 @@ let primeiraRodadaDePratos = true;
 
 let musicaFundo;
 
+const ACERTO = 'acerto';
+const ERRO = 'erro';
+
 // -------------------
 
 /**
@@ -243,6 +246,12 @@ function preload() {
 	this.load.audio('quatro', './assets/audio/quatro.m4a');
 	this.load.audio('cinco', './assets/audio/cinco.m4a');
 	this.load.audio("fundo", "./assets/audio/fundo.m4a");
+	this.load.audio('acerto_1', './assets/audio/acerto_1.m4a');
+	this.load.audio('acerto_2', './assets/audio/acerto_2.m4a');
+	this.load.audio('acerto_3', './assets/audio/acerto_3.m4a');
+	this.load.audio('erro_1', './assets/audio/erro_1.m4a');
+	this.load.audio('erro_2', './assets/audio/erro_2.m4a');
+	this.load.audio('erro_3', './assets/audio/erro_3.m4a');
 	this.load.atlas('atlas', './assets/atlas/texture.png', './assets/atlas/texture.json');
 }
 
@@ -296,14 +305,17 @@ function fnJogo() {
 	});
 
 	$relogio.onStop = function () {
+		escondePedidos();
 		const eraUltimaSubFase = subFase === totalSubFases;
 		erros.value++;
 
-		if (!eraUltimaSubFase) {
-			novaSubFase();
-		} else {
-			fimDeFase();
-		}
+		tocaAudioResultado(ERRO, function() {
+			if (!eraUltimaSubFase) {
+				novaSubFase();
+			} else {
+				fimDeFase();
+			}
+		});
 	}
 
 	// Ícones e relógio
@@ -378,14 +390,17 @@ function fnJogo() {
 		if (idPrato !== idPedido) {
 			// entrega errada
 			$relogio.reset();
+			escondePedidos();
 			let eraUltimaSubFase = subFase === totalSubFases;
 			erros.value++;
 
-			if (!eraUltimaSubFase) {
-				novaSubFase();
-			} else {
-				fimDeFase();
-			}
+			tocaAudioResultado(ERRO, function() {
+				if (!eraUltimaSubFase) {
+					novaSubFase();
+				} else {
+					fimDeFase();
+				}
+			});
 			return;
 		}
 
@@ -424,18 +439,23 @@ function fnJogo() {
 		}
 
 		// acerto parcial, relógio continua correndo
-		if (!todosEntregues) return;
+		if (!todosEntregues) {
+			tocaAudioResultado(ACERTO, function() {});
+			return;
+		}
 
 		// acerto total
 		$relogio.reset();
-		let eraUltimaSubFaseAcerto = subFase === totalSubFases;
+		let eraUltimaSubFase = subFase === totalSubFases;
 		acertos.value++;
 
-		if (!eraUltimaSubFaseAcerto) {
-			novaSubFase();
-		} else {
-			fimDeFase();
-		}
+		tocaAudioResultado(ACERTO, function() {
+			if (!eraUltimaSubFase) {
+				novaSubFase();
+			} else {
+				fimDeFase();
+			}
+		});
 	});
 
 	$this.input.on('dragend', function (_pointer, gameObject, dropped) {
@@ -454,6 +474,19 @@ function fnJogo() {
 	});
 
 	iniciaJogo();
+}
+
+function tocaAudioResultado(resultado, callback) {
+	const lista = resultado === ACERTO
+		? ['acerto_1', 'acerto_2', 'acerto_3']
+		: ['erro_1', 'erro_2', 'erro_3'];
+
+	const som = $this.sound.add(lista[Phaser.Math.Between(0, 2)]);
+	som.once('complete', function() {
+		som.destroy();
+		callback();
+	});
+	som.play();
 }
 
 function iniciaJogo() {
