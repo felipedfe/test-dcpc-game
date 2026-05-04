@@ -1,6 +1,6 @@
 # Technical Test — De Criança Para Criança
 
-This project is a technical test for [De Criança Para Criança](https://decriancaparacrianca.com.br/), a Brazilian platform that brings children's artwork to life by turning their drawings and paintings into interactive animations and games.
+This project is a technical test for [De Criança Para Criança](https://decriancaparacrianca.com.br/en), a Brazilian platform that brings children's artwork to life by turning their drawings and paintings into interactive animations and games.
 
 ![Game Preview](assets/game-preview.webp)
 
