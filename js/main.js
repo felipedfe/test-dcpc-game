@@ -149,36 +149,75 @@ let errosJogo = 0;
 let acertosJogo = 0;
 
 // -------------------
+/**
+ * Mapeia o número da fase para a chave do fundo correspondente
+ * @type object
+ */
 const fundoPorFase = {
 	1: 'parede_1',
 	2: 'parede_2',
 	3: 'parede_3',
 };
 
-// constantes para usar nos audios de erro e acerto
+/**
+ * Constante para identificar resultado de acerto nos áudios
+ * @type string
+ */
 const ACERTO = 'acerto';
+
+/**
+ * Constante para identificar resultado de erro nos áudios
+ * @type string
+ */
 const ERRO = 'erro';
 
-// guarda um Phaser.GameObjects.Image
+/**
+ * Sprite do fundo da fase atual
+ * @type Phaser.GameObjects.Image
+ */
 let fundoSprite;
 
-// guarda os GameObjects das crianças
+/**
+ * Container com os sprites dos personagens
+ * @type Phaser.GameObjects.Container
+ */
 let containerPersonagens;
 
+/**
+ * Container com os sprites dos pratos
+ * @type Phaser.GameObjects.Container
+ */
 let containerPratos;
 
+/**
+ * Container com os balões de pedido
+ * @type Phaser.GameObjects.Container
+ */
 let containerPedidos;
 
-// onde guardamos os pedidos de cada subFase
+/**
+ * Ids dos pedidos sorteados na subfase atual
+ * @type int[]
+ */
 let pedidosDaRodada = [];
 
+/**
+ * Sprites dos personagens sorteados na subfase atual
+ * @type Phaser.GameObjects.Sprite[]
+ */
 let personagensDaRodada = [];
 
-// essa variável controla a animação inicial dos pratos
+/**
+ * Controla se a animação de entrada dos pratos deve ser exibida
+ * @type bool
+ */
 let primeiraRodadaDePratos = true;
 
+/**
+ * Objeto de som da música de fundo
+ * @type Phaser.Sound.BaseSound
+ */
 let musicaFundo;
-
 // -------------------
 
 /**
@@ -478,19 +517,6 @@ function fnJogo() {
 	iniciaJogo();
 }
 
-function tocaAudioResultado(resultado, callback) {
-	const lista = resultado === ACERTO
-		? ['acerto_1', 'acerto_2', 'acerto_3']
-		: ['erro_1', 'erro_2', 'erro_3'];
-
-	const som = $this.sound.add(lista[Phaser.Math.Between(0, 2)]);
-	som.once('complete', function() {
-		som.destroy();
-		callback();
-	});
-	som.play();
-}
-
 function iniciaJogo() {
 	(debug && console.log('iniciaJogo'));
 	textoFase.text = 'FASE ' + fase;
@@ -498,40 +524,6 @@ function iniciaJogo() {
 	aplicarFundoDaFase(fase);
 	renderizaPratos();
 	novaSubFase();
-}
-
-// aqui só preciso sortear os ids dos pedidos p/ depois associar ao personagens
-function sorteioPedidos() {
-	const disponiveis = [1, 2, 3, 4, 5];
-	// fase = 3
-	for (let i = 1; i <= fase; i += 1) {
-		const indice = Math.floor(Math.random() * disponiveis.length);
-		const numeroSorteado = disponiveis.splice(indice, 1)[0];
-		pedidosDaRodada.push(numeroSorteado);
-	}
-}
-
-// sorteia os personagens direto pelo container para associar os ids dos pedidos
-function sorteioPersonagens() {
-	const disponiveis = [...containerPersonagens.list];
-	const resultado = [];
-
-	for (let i = 0; i < fase; i += 1) {
-		const indice = Math.floor(Math.random() * disponiveis.length);
-		const personagem = disponiveis.splice(indice, 1)[0];
-		resultado.push(personagem);
-	}
-
-	return resultado;
-}
-
-function resetSubFase() {
-	escondePedidos();
-	containerPersonagens.iterate(function (p) {
-		p.setData('idPedido', 0);
-		p.setFrame('crianca_' + p.getData('id') + '_normal');
-	});
-	pedidosDaRodada = [];
 }
 
 /**
@@ -548,22 +540,63 @@ function novaSubFase() {
 	sorteioPedidos();
 	personagensDaRodada = sorteioPersonagens();
 
-	// associa pedidos a personagens
 	for (let i = 0; i < fase; i += 1) {
 		personagensDaRodada[i].setData('idPedido', pedidosDaRodada[i]);
 	}
 
-	// esse delay aqui é só pra 1a rodada porque o pedido precisa aparecer na tela depois da anima de entrada dos personagens
+	// delay só na 1ª rodada para aguardar a animação de entrada dos personagens
 	if (fase === 1 && subFase === 1) {
 		$this.time.delayedCall(1000, mostraPedidos);
 	} else {
 		mostraPedidos();
 	}
 
-
 	(debug && console.log('---> pedidos da rodada:', pedidosDaRodada));
 	(debug && console.log('---> personagens da rodada:', personagensDaRodada.map(p => ({ id: p.getData('id'), idPedido: p.getData('idPedido') }))));
+}
 
+function resetSubFase() {
+	escondePedidos();
+	containerPersonagens.iterate(function (p) {
+		p.setData('idPedido', 0);
+		p.setFrame('crianca_' + p.getData('id') + '_normal');
+	});
+	pedidosDaRodada = [];
+}
+
+function sorteioPedidos() {
+	const disponiveis = [1, 2, 3, 4, 5];
+	for (let i = 1; i <= fase; i += 1) {
+		const indice = Math.floor(Math.random() * disponiveis.length);
+		const numeroSorteado = disponiveis.splice(indice, 1)[0];
+		pedidosDaRodada.push(numeroSorteado);
+	}
+}
+
+function sorteioPersonagens() {
+	const disponiveis = [...containerPersonagens.list];
+	const resultado = [];
+
+	for (let i = 0; i < fase; i += 1) {
+		const indice = Math.floor(Math.random() * disponiveis.length);
+		const personagem = disponiveis.splice(indice, 1)[0];
+		resultado.push(personagem);
+	}
+
+	return resultado;
+}
+
+function tocaAudioResultado(resultado, callback) {
+	const lista = resultado === ACERTO
+		? ['acerto_1', 'acerto_2', 'acerto_3']
+		: ['erro_1', 'erro_2', 'erro_3'];
+
+	const som = $this.sound.add(lista[Phaser.Math.Between(0, 2)]);
+	som.once('complete', function() {
+		som.destroy();
+		callback();
+	});
+	som.play();
 }
 
 /**
