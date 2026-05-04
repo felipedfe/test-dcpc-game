@@ -10,7 +10,7 @@ function fimDeFase() {
 		return;
 	}
 
-	musicaFundo.setVolume(0.5);
+	musicaFundo.setVolume(0.4);
 
 	let faseEncerrada = fase;
 
@@ -74,7 +74,7 @@ function fimDeFase() {
 function fimDeJogo() {
 	(debug && console.log(`===== FIM DE JOGO | acertos: ${acertosJogo} erros: ${errosJogo} =====`));
 
-	musicaFundo.setVolume(0.5);
+	musicaFundo.setVolume(0.4);
 
 	let bloqueador = $this.add.zone(0, 0, gameWidth, gameHeight)
 		.setOrigin(0, 0)

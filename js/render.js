@@ -56,6 +56,7 @@ function escondePedidos() {
 	});
 }
 
+
 // PERSONAGENS
 function criaPersonagem(id, x, y) {
 	const personagem = $this.add

@@ -155,6 +155,10 @@ const fundoPorFase = {
 	3: 'parede_3',
 };
 
+// constantes para usar nos audios de erro e acerto
+const ACERTO = 'acerto';
+const ERRO = 'erro';
+
 // guarda um Phaser.GameObjects.Image
 let fundoSprite;
 
@@ -168,14 +172,12 @@ let containerPedidos;
 // onde guardamos os pedidos de cada subFase
 let pedidosDaRodada = [];
 
-let personagensDaRodada;
+let personagensDaRodada = [];
 
+// essa variável controla a animação inicial dos pratos
 let primeiraRodadaDePratos = true;
 
 let musicaFundo;
-
-const ACERTO = 'acerto';
-const ERRO = 'erro';
 
 // -------------------
 
@@ -350,12 +352,14 @@ function fnJogo() {
 		gameObject.x = dragX;
 		gameObject.y = dragY;
 
+		// personagem abre a boca
 		personagensDaRodada.map(function (personagem) {
 			const id = personagem.getData('id');
 			personagem.setFrame('crianca_' + id + '_boca');
 		})
 	});
 
+	// prato fica transparente quando entra na drop zone do personagem
 	$this.input.on('dragenter', function (_pointer, prato, personagem) {
 		if (personagem.data.list.idPedido) {
 			$this.tweens.add({ targets: prato, alpha: 0.6, duration: 0 });
@@ -368,8 +372,6 @@ function fnJogo() {
 
 	$this.input.on('drop', function (_pointer, prato, personagem) {
 		// prato sempre volta pra posição original após drop
-		// prato.x = prato.initialXPos;
-		// prato.y = prato.initialYPos;
 		$this.tweens.add({
 			targets: prato,
 			alpha: 0,
@@ -523,17 +525,14 @@ function sorteioPersonagens() {
 	return resultado;
 }
 
-// function sorteia() {
-// 	const disponiveis = [1, 2, 3, 4, 5];
-
-// 	const resultado = [];
-// 	for (let i = 0; i < fase; i += 1) {
-// 			const indice = Math.floor(Math.random() * disponiveis.length);
-// 			const numeroSorteado = disponiveis.splice(indice, 1)[0];
-// 			resultado.push(numeroSorteado);
-// 	}
-// 	return resultado;
-// }
+function resetSubFase() {
+	escondePedidos();
+	containerPersonagens.iterate(function (p) {
+		p.setData('idPedido', 0);
+		p.setFrame('crianca_' + p.getData('id') + '_normal');
+	});
+	pedidosDaRodada = [];
+}
 
 /**
  * Inicia nova subfase.
@@ -542,19 +541,14 @@ function sorteioPersonagens() {
 function novaSubFase() {
 	(debug && console.log('novaSubFase'));
 
-	// reset da subfase anterior
-	escondePedidos();
-	containerPersonagens.iterate(function (p) {
-		p.setData('idPedido', 0);
-		p.setFrame('crianca_' + p.getData('id') + '_normal');
-	});
-	pedidosDaRodada = [];
+	resetSubFase();
 
 	$relogio.start();
 
 	sorteioPedidos();
 	personagensDaRodada = sorteioPersonagens();
 
+	// associa pedidos a personagens
 	for (let i = 0; i < fase; i += 1) {
 		personagensDaRodada[i].setData('idPedido', pedidosDaRodada[i]);
 	}
